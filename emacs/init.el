@@ -1,5 +1,4 @@
 (require 'package)
-(add-to-list 'load-path "~/.emacs.d/lisp/")
 (add-to-list 'package-archives
 	     '("melpa" . "https://melpa.org/packages/") t)
 (add-to-list 'package-archives
@@ -24,8 +23,7 @@
 (or (file-exists-p package-user-dir)
     (package-refresh-contents))
 (package-initialize)
-(ensure-package-installed 'auto-complete
-                          'dockerfile-mode
+(ensure-package-installed 'dockerfile-mode
                           'docker-tramp
                           'evil
 			  'evil-surround
@@ -34,26 +32,23 @@
 			  'helm
 			  'linum-relative
 			  'magit
-                          'markdown-mode
 			  'ng2-mode
 			  'powerline
 			  'projectile
 			  'projectile-rails
-; own one in ./lisp/	  'rspec-mode
+			  'rspec-mode
 ;			  'rubocop
 			  'sass-mode
 			  'solarized-theme
 			  'slim-mode
 			  'typescript-mode
 			  'yaml-mode)
-(ac-config-default)
 (require 'helm)
 (require 'powerline)
 (powerline-default-theme)
 (require 'rspec-mode)
 ;(add-hook 'ruby-mode-hook #'rubocop-mode)
 (add-hook 'css-mode-hook #'linum-mode)
-(add-hook 'js-mode-hook #'linum-mode)
 (add-hook 'ng2-ts-mode-hook #'linum-mode)
 (add-hook 'ng2-html-mode-hook #'linum-mode)
 (add-hook 'rails-mode-hook #'linum-mode)
@@ -90,12 +85,6 @@
  '(package-selected-packages
    (quote
     (slim-mode solarized-theme powerline magit evil dockerfile-mode)))
- '(safe-local-variable-values
-   (quote
-    ((rspec-docker-cwd . "/myapp/")
-     (rspec--docker-cwd . "/myapp")
-     (rspec-docker-container . "sharewayz_app_1")
-     (rspec-use-docker-when-possible . t))))
  '(typescript-auto-indent-flag nil)
  '(typescript-expr-indent-offset 2)
  '(typescript-indent-level 2))
@@ -120,9 +109,6 @@
   (function (lambda ()
           (setq evil-shift-width ruby-indent-level))))
 (add-hook 'ruby-mode-hook
-  (function (lambda ()
-          (setq evil-shift-width ruby-indent-level))))
-(add-hook 'js-mode-hook
   (function (lambda ()
           (setq evil-shift-width ruby-indent-level))))
 (add-hook 'ng2-ts-mode-hook
