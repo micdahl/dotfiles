@@ -1,0 +1,221 @@
+#+TITLE: Emacs Configuration
+#+AUTHOR: Michael Dahl
+#+EMAIL: michael.dahl84@gmail.com
+#+OPTIONS: toc:nil num:nil
+
+* Sensible Defaults
+Use [[https://github.com/hrs/sensible-defaults.el][sensible-defaults.el]] for some basic settings.
+
+#+BEGIN_SRC emacs-lisp
+  (load-file "~/.emacs.d/sensible-defaults.el")
+  (sensible-defaults/use-all-settings)
+  (sensible-defaults/use-all-keybindings)
+  (sensible-defaults/backup-to-temp-directory)
+#+END_SRC
+
+
+* Configure =use-package=
+#+BEGIN_SRC emacs-lisp
+  (add-to-list 'package-archives
+	     '("melpa" . "https://melpa.org/packages/") t)
+  (add-to-list 'package-archives
+	     '("org" . "http://orgmode.org/elpa/") t)
+  (unless (package-installed-p 'use-package)
+    (package-install 'use-package))
+
+  (setq use-package-verbose t)
+  (setq use-package-always-ensure t)
+
+  (require 'use-package)
+#+END_SRC
+
+Always compile packages and use the newest version available
+
+#+BEGIN_SRC emacs-lisp
+  (use-package auto-compile
+    :config (auto-compile-on-load-mode))
+  (setq load-prefer-newer t)
+#+END_SRC
+
+* List of packages
+List of packages I want to use
+#+BEGIN_SRC emacs-lisp
+  (use-package auto-complete)
+  (use-package dockerfile-mode)
+  (use-package evil)
+  (use-package evil-magit)
+  (use-package evil-surround)
+  (use-package ivy)
+  (use-package json-mode)
+  (use-package linum-relative)
+  (use-package log4e)
+  (use-package org-bullets)
+  (use-package powershell)
+  (use-package projectile)
+  (use-package projectile-rails)
+  (use-package rspec-mode)
+  (use-package solarized-theme)
+  (use-package tss)
+  (use-package yasnippet)
+  (use-package yaxception)
+#+END_SRC
+
+* Set personal information
+
+** Who am I? Where am I?
+
+#+BEGIN_SRC emacs-lisp
+  (setq user-full-name "Michael Dahl"
+        user-mail-address "michael.dahl84@gmail.com")
+#+END_SRC
+
+* Add =resources= to =load-path=
+
+#+BEGIN_SRC emacs-lisp
+  (add-to-list 'load-path "~/.emacs.d/resources/")
+#+END_SRC
+
+* =evil-mode=
+Load package
+
+I'd prefer not to expand abbrevs when I hit escape. That's always jarring and
+usually not what I want. In particular, it makes working with Coq really
+frustrating.
+
+#+BEGIN_SRC emacs-lisp
+  (setq evil-want-abbrev-expand-on-insert-exit nil)
+#+END_SRC
+
+Use =evil=.
+
+#+BEGIN_SRC emacs-lisp
+  (evil-mode 1)
+#+END_SRC
+
+Enable =surround= everywhere.
+
+#+BEGIN_SRC emacs-lisp
+  (global-evil-surround-mode 1)
+#+END_SRC
+
+Bind =C-p= to fuzzy-finding files in the current project.
+
+#+BEGIN_SRC emacs-lisp
+  (define-key evil-normal-state-map (kbd "C-p") 'projectile-find-file)
+#+END_SRC
+
+* UI preferences
+** solarized-dark theme
+
+#+BEGIN_SRC emacs-lisp
+  (defun md/apply-solarized-theme ()
+    (setq solarized-high-contrast-mode-line t)
+    (load-theme 'solarized-dark t))
+#+END_SRC
+
+If code is loaded by =emacs --daemon=, ensure, that each subsequent frame is themed appropriately
+
+#+BEGIN_SRC emacs-lisp
+  (if (daemonp)
+    (add-hook 'after-make-frame-functions
+              (lambda (frame)
+                  (md/apply-solarized-theme)))
+  (md/apply-solarized-theme))
+#+END_SRC
+** Use fancy lambdas
+
+#+BEGIN_SRC emacs-lisp
+  (global-prettify-symbols-mode t)
+#+END_SRC
+
+** No Toolbar
+#+BEGIN_SRC emacs-lisp
+  (tool-bar-mode 0)
+#+END_SRC
+
+** Window titlebar
+#+BEGIN_SRC emacs-lisp
+    (setq frame-title-format '((:eval (projectile-project-name))))
+#+END_SRC
+** Line numbering
+
+#+BEGIN_SRC emacs-lisp
+    (linum-mode 1)
+    (linum-on)
+    (linum-relative-on)
+#+END_SRC
+
+* Org-mode
+
+Pretty bullets instead of list of asterisks
+#+BEGIN_SRC emacs-lisp
+    (add-hook 'org-mode-hook
+          (lambda ()
+            (org-bullets-mode t)))
+#+END_SRC
+
+* Editing settings
+Never use tabs, use 2 spaces instead
+#+BEGIN_SRC emacs-lisp
+  (setq-default indent-tabs-mode nil)
+  (setq-default tab-width 2)
+#+END_SRC
+Treat terms in CamelCase symbols as separate words
+#+BEGIN_SRC emacs-lisp
+  (global-subword-mode 1)
+#+END_SRC
+** yasnippet
+#+BEGIN_SRC emacs-lisp
+  (yas-global-mode 1)
+#+END_SRC
+
+* Autocomplete
+
+#+BEGIN_SRC emacs-lisp
+  (ac-config-default)
+#+END_SRC
+* Magit
+#+BEGIN_SRC emacs-lisp
+  (global-set-key (kbd "C-x g") 'magit-status)
+#+END_SRC
+* Ivy
+
+Set Ivy key bindings
+#+BEGIN_SRC emacs-lisp
+  (ivy-mode 1)
+  (setq ivy-use-virtual-buffers t)
+  (setq enable-recursive-minibuffers t)
+  (global-set-key "\C-s" 'swiper)
+  (global-set-key (kbd "C-c C-r") 'ivy-resume)
+  (global-set-key (kbd "<f6>") 'ivy-resume)
+  (global-set-key (kbd "M-x") 'counsel-M-x)
+  (global-set-key (kbd "C-x C-f") 'counsel-find-file)
+  (global-set-key (kbd "<f1> f") 'counsel-describe-function)
+  (global-set-key (kbd "<f1> v") 'counsel-describe-variable)
+  (global-set-key (kbd "<f1> l") 'counsel-find-library)
+  (global-set-key (kbd "<f2> i") 'counsel-info-lookup-symbol)
+  (global-set-key (kbd "<f2> u") 'counsel-unicode-char)
+  (global-set-key (kbd "C-c g") 'counsel-git)
+  (global-set-key (kbd "C-c j") 'counsel-git-grep)
+  (global-set-key (kbd "C-c k") 'counsel-ag)
+  (global-set-key (kbd "C-x l") 'counsel-locate)
+  (global-set-key (kbd "C-S-o") 'counsel-rhythmbox)
+  (define-key read-expression-map (kbd "C-r") 'counsel-expression-history)
+#+END_SRC
+
+Ignore backup and temp files
+#+BEGIN_SRC emacs-lisp
+(setq counsel-find-file-ignore-regexp "\(?:\`[#.]\)\|\(?:[#~]\'\)")
+#+END_SRC
+
+
+* Programming environments
+** Typescript
+
+#+BEGIN_SRC emacs-lisp
+  (add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-mode))
+  (setq tss-popup-help-key "C-:")
+  (setq tss-jump-to-definition-key "C->")
+  (setq tss-implement-definition-key "C-c i")
+  (tss-config-default)
+#+END_SRC
