@@ -41,10 +41,14 @@ Always compile packages and use the newest version available
 List of packages I want to use
 #+BEGIN_SRC emacs-lisp
   (use-package auto-complete)
+  (use-package coffee-mode)
   (use-package dockerfile-mode)
   (use-package evil)
   (use-package evil-magit)
   (use-package evil-surround)
+  (use-package flycheck
+    :ensure t
+    :init (global-flycheck-mode))
   (use-package ivy)
   (use-package json-mode)
   (use-package linum-relative)
@@ -54,8 +58,11 @@ List of packages I want to use
   (use-package projectile)
   (use-package projectile-rails)
   (use-package rspec-mode)
+  (use-package sass-mode)
+  (use-package slim-mode)
   (use-package solarized-theme)
   (use-package tss)
+  (use-package yaml-mode)
   (use-package yasnippet)
   (use-package yaxception)
 #+END_SRC
@@ -138,11 +145,16 @@ If code is loaded by =emacs --daemon=, ensure, that each subsequent frame is the
     (setq frame-title-format '((:eval (projectile-project-name))))
 #+END_SRC
 ** Line numbering
-
+Set line numbering on
 #+BEGIN_SRC emacs-lisp
     (linum-mode 1)
     (linum-on)
     (linum-relative-on)
+#+END_SRC
+
+Display cursor column in mode line
+#+BEGIN_SRC emacs-lisp
+    (setq column-number-mode t)
 #+END_SRC
 
 * Org-mode
@@ -210,6 +222,16 @@ Ignore backup and temp files
 
 
 * Programming environments
+** Coffee
+   Tab width of 2
+#+BEGIN_SRC emacs-lisp
+  (custom-set-variables '(coffee-tab-width 2))
+#+END_SRC
+
+** Rails
+#+BEGIN_SRC emacs-lisp
+  (projectile-rails-global-mode)
+#+END_SRC
 ** Typescript
 
 #+BEGIN_SRC emacs-lisp
