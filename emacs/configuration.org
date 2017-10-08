@@ -42,31 +42,96 @@ List of packages I want to use
 #+BEGIN_SRC emacs-lisp
   (use-package auto-complete)
   (use-package coffee-mode)
+  (use-package counsel)
+  (use-package counsel-projectile
+    :init (counsel-projectile-on))
   (use-package dockerfile-mode)
   (use-package evil)
   (use-package evil-magit)
   (use-package evil-surround)
+  (use-package feature-mode)
   (use-package flycheck
     :ensure t
     :init (global-flycheck-mode))
-  (use-package ivy)
+  (use-package ivy
+    :init (ivy-mode 1))
   (use-package json-mode)
   (use-package linum-relative)
   (use-package log4e)
   (use-package org-bullets)
+  (use-package package-lint)
   (use-package powershell)
-  (use-package projectile)
+  (use-package projectile
+    :init (setq projectile-completion-system 'ivy))
   (use-package projectile-rails)
+  (use-package projectile-trailblazer
+    :load-path "/Users/michaeldahl/Documents/repos/projectile-trailblazer"
+    :init
+    (setq projectile-trailblazer-keymap-prefix (kbd "C-c t")))
   (use-package rspec-mode)
   (use-package sass-mode)
   (use-package slim-mode)
   (use-package solarized-theme)
+  (use-package swiper)
   (use-package tss)
   (use-package yaml-mode)
   (use-package yasnippet)
   (use-package yaxception)
 #+END_SRC
 
+* Load own startup code
+As long as docker-support is not bound to package, use my own:
+#+BEGIN_SRC emacs-lisp
+;  (load "~/.emacs.d/own/feature-mode.el")
+
+
+(defvar compilation-command-prefix nil
+  "Using environments like docker, this can be used to
+add a command prefix which is executed before each compile command.
+Last given char in most cases should be whitespace.")
+
+(defvar compilation-project-root nil
+  "When set to a projecet root dir, parameters which contain that dir get
+   subsituted, which makes them relative to the root path.")
+
+(defun compile (command &optional comint)
+  "Compile the program including the current buffer.  Default: run `make'.
+Runs COMMAND, a shell command, in a separate process asynchronously
+with output going to the buffer `*compilation*'.
+You can then use the command \\[next-error] to find the next error message
+and move to the source code that caused it.
+If optional second arg COMINT is t the buffer will be in Comint mode with
+`compilation-shell-minor-mode'.
+Interactively, prompts for the command if the variable
+`compilation-read-command' is non-nil; otherwise uses `compile-command'.
+With prefix arg, always prompts.
+Additionally, with universal prefix arg, compilation buffer will be in
+comint mode, i.e. interactive.
+To run more than one compilation at once, start one then rename
+the `*compilation*' buffer to some other name with
+\\[rename-buffer].  Then _switch buffers_ and start the new compilation.
+It will create a new `*compilation*' buffer.
+On most systems, termination of the main compilation process
+kills its subprocesses.
+The name used for the buffer is actually whatever is returned by
+the function in `compilation-buffer-name-function', so you can set that
+to a function that generates a unique name."
+  (interactive
+   (list
+    (let ((command (eval compile-command)))
+      (if (or compilation-read-command current-prefix-arg)
+	  (compilation-read-command command)
+	command))
+    (consp current-prefix-arg)))
+  (unless (equal command (eval compile-command))
+    (setq compile-command command))
+  (save-some-buffers (not compilation-ask-about-save)
+                     compilation-save-buffers-predicate)
+  (setq-default compilation-directory default-directory)
+  (compilation-start (concat compilation-command-prefix (replace-regexp-in-string compilation-project-root "" command)) comint))
+
+
+#+END_SRC
 * Set personal information
 
 ** Who am I? Where am I?
@@ -157,6 +222,10 @@ Display cursor column in mode line
     (setq column-number-mode t)
 #+END_SRC
 
+** Fonts
+#+BEGIN_SRC emacs-lisp
+  (add-to-list 'default-frame-alist '(font . "Input Sans"))
+#+END_SRC
 * Org-mode
 
 Pretty bullets instead of list of asterisks
@@ -164,6 +233,8 @@ Pretty bullets instead of list of asterisks
     (add-hook 'org-mode-hook
           (lambda ()
             (org-bullets-mode t)))
+    (eval-after-load "org"
+      '(require 'ox-md nil t))
 #+END_SRC
 
 * Editing settings
@@ -195,6 +266,7 @@ Treat terms in CamelCase symbols as separate words
 Set Ivy key bindings
 #+BEGIN_SRC emacs-lisp
   (ivy-mode 1)
+#+END_SRC
   (setq ivy-use-virtual-buffers t)
   (setq enable-recursive-minibuffers t)
   (global-set-key "\C-s" 'swiper)
@@ -213,24 +285,34 @@ Set Ivy key bindings
   (global-set-key (kbd "C-x l") 'counsel-locate)
   (global-set-key (kbd "C-S-o") 'counsel-rhythmbox)
   (define-key read-expression-map (kbd "C-r") 'counsel-expression-history)
-#+END_SRC
 
 Ignore backup and temp files
 #+BEGIN_SRC emacs-lisp
 (setq counsel-find-file-ignore-regexp "\(?:\`[#.]\)\|\(?:[#~]\'\)")
 #+END_SRC
 
-
+* Flycheck
+#+BEGIN_SRC emacs-lisp
+  (setq flycheck-ruby-rubocop-executable "~/.rbenv/shims/rubocop")
+#+END_SRC
 * Programming environments
 ** Coffee
    Tab width of 2
 #+BEGIN_SRC emacs-lisp
-  (custom-set-variables '(coffee-tab-width 2))
+  (setq coffee-tab-width 2)
+#+END_SRC
+
+** Feature
+#+BEGIN_SRC emacs-lisp
+  (add-hook 'ruby-mode-hook
+    (lambda ()
+      (local-set-key (kbd "C-c . f") 'feature-verify-all-scenarios-in-project)))
 #+END_SRC
 
 ** Rails
 #+BEGIN_SRC emacs-lisp
   (projectile-rails-global-mode)
+  (projectile-trailblazer-global-mode)
 #+END_SRC
 ** Typescript
 
@@ -240,4 +322,23 @@ Ignore backup and temp files
   (setq tss-jump-to-definition-key "C->")
   (setq tss-implement-definition-key "C-c i")
   (tss-config-default)
+#+END_SRC
+
+* Local Variables
+#+BEGIN_SRC emacs-lisp
+;  (add-to-list 'safe-local-variable-values
+;                 '(feature-docker-compose-command . "/usr/local/bin/docker-compose"))
+;  (add-to-list 'safe-local-variable-values
+;                 '(rspec-docker-command . "/usr/local/bin/docker-compose exec"))
+;  (add-to-list 'safe-local-variable-values
+;                 '(rspec-docker-container . "app"))
+;  (add-to-list 'safe-local-variable-values
+;                 '(rspec-docker-cwd . "/myapp/"))
+;  (add-to-list 'safe-local-variable-values
+;                 '(rspec-use-docker-when-possible . t))
+  (add-to-list 'safe-local-variable-values
+                 '(compilation-command-prefix . "/usr/local/bin/docker-compose exec app "))
+  (add-to-list 'safe-local-variable-values
+                 '(eval setq compilation-project-root
+                    (replace-regexp-in-string "~" (getenv "HOME") (locate-dominating-file default-directory ".dir-locals.el"))))
 #+END_SRC
